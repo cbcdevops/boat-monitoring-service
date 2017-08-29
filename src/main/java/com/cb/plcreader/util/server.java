@@ -30,10 +30,7 @@ public class server {
             out.write(b);
             out.flush();
             in = new ObjectInputStream(connection.getInputStream());
-            //4. The two parts communicate via the input and output streams
-            do {
-                System.out.print(in.readByte()+ " ");
-            } while (in.available() != 0);
+
 
 
         } catch (IOException ioException) {

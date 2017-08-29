@@ -11,9 +11,10 @@ public class readScheduler {
     @Autowired
     private SocketClient socketClient;
 
-    @Scheduled(cron="*/5 * * * * *")
-    public void readDataforEvery3Second()
+    //@Scheduled(cron="*/30 * * * * *")
+    @Scheduled(cron="0 0 * * * *")
+    public void readDataforEverySecond()
     {
-        socketClient.readData();
+        System.out.println("Hi Lokesh");
     }
 }

@@ -1,11 +1,7 @@
 package com.cb.plcreader.services;
 
-import com.cb.plcreader.models.CaptureInformation;
-import com.cb.plcreader.models.ConnObject;
-import com.cb.plcreader.models.MetaData;
-import com.cb.plcreader.models.Sensor;
+import com.cb.plcreader.models.*;
 import com.cloudant.client.api.Database;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
@@ -26,62 +20,122 @@ public class SocketClient {
     String message;
     Byte[] b = {6, 48, 49, 48, 48, 53, 56, 55, 48, 48, 48, 48, 52, 50, 54, 67, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 52, 50, 50, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 52, 51, 50, 53, 51, 51, 51, 51, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 48, 65, 49, 49, 48, 48, 48, 48, 48, 53, 56, 48, 48, 48, 48, 48, 52, 50, 54, 52, 48, 48, 48, 48, 51, 50, 13};
 
+    private ConnObject connObject = new ConnObject();
+    private long startTime;
+    private AssetInformation assetInformation;
+    private List<SensorInfo> pmeSensorInfoList;
+    private CaptureInformation captureInformation;
+
     @Autowired
     Database database;
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    SocketClient() {
+    public SocketClient() {
     }
 
-    public void readData() {
-
-        long startTime = System.currentTimeMillis();
-        String host = "127.0.0.1";
-        //String host = "166.251.157.66";
-        int port = 2101;
-        //Connecting to the PLC board
-        ConnObject connObject = new ConnObject(host, port);
-        try {
-              connObject = this.connect(connObject);
-        } catch (IOException e) {
-            log.error("Error opening connection with the host. " + connObject.getIp() + e.getMessage());
-            this.writeErrorMsg("Error opening connection with the host. " + connObject.getIp() + " " +e.getMessage(), connObject);
-            return;
+    public void readAssetRegisters(AssetInformation assetDoc) {
+        assetInformation = assetDoc;
+        if (this.createConnection()) {
+            startTime = System.currentTimeMillis();
+            this.createCaptureDocument();
+            this.populatePortMainEngSensorList(readSensor(10000, 32));
         }
-
-        //Building the Request Object
-        byte[] requestObject = this.buildReadRequest();
-
-        //Send the Read Request to PLC
-        this.sendRequest(connObject, requestObject);
-
-        //Read the response from the server
-        String responseString = this.getResponse(connObject);
-
-        this.closeConnection(connObject);
-
-        this.createCaptureDocument(responseString, connObject, startTime);
-
-        //Todo Implement the logic the created document into Cloudant
-        //this.writeCaptureDocument();
     }
 
-    private ConnObject connect(ConnObject connObject) throws IOException {
+    private boolean createConnection() {
+
+        try {
+            connObject.setIp(assetInformation.getHostAddress1());
+            connObject.setPort(assetInformation.getPort());
+            this.createSocket();
+            return true;
+        } catch (IOException e) {
+            log.error("Error opening connection with the asset using primary IP. " + connObject.getIp() + e.getMessage());
+            connObject.setIp(assetInformation.getHostAddress2());
+            connObject.setPort(assetInformation.getPort());
+            try {
+                this.createSocket();
+                return true;
+            } catch (IOException e1) {
+                log.error("Error opening connection with asset using secondary IP. " + connObject.getIp() + e.getMessage());
+                this.writeErrorMsg("No Connectivity with Asset " + assetInformation.getAssetName() + ". " + e.getMessage());
+                return false;
+
+            }
+        }
+    }
+
+    private void createSocket() throws IOException {
 
         Socket requestSocket = new Socket(connObject.getIp(), connObject.getPort());
 
         if (requestSocket.isConnected()) {
-            log.info("Connection opened with host " + connObject.getIp());
+            log.debug("Connection opened with host " + connObject.getIp());
             connObject.setInputStream(requestSocket.getInputStream());
             connObject.setOutputStream(requestSocket.getOutputStream());
             connObject.setOnline(requestSocket.isConnected());
         }
 
-        return connObject;
     }
 
-    private byte[] buildReadRequest() {
+    private String readSensor(int dataRegister, int noOfDr) {
+
+        //Building the Request Object
+        byte[] requestObject = this.buildReadRequest(dataRegister, noOfDr);
+
+        //Send the Read Request to PLC
+        this.sendRequest( requestObject);
+
+        //Read the response from the server
+        return this.getResponse();
+
+        //this.closeConnection(connObject);
+
+    }
+
+    private void populatePortMainEngSensorList(String responseString) {
+
+        if (responseString == null) {
+            this.writeErrorMsg("No response for PORT MAIN ENGINE * sensors read ");
+            return;
+        }
+
+        Map sensorValue = new HashMap();
+        String selectorJson = "{\"selector\":{\"docType\":{\"$eq\":\"sensor_info\"},\"sensorGroup\":{\"$eq\":\"PORT_MAIN_ENGINE\"}},\"fields\":[],\"sort\":[{\"_id\":\"asc\"}]}";
+        pmeSensorInfoList = database.findByIndex(selectorJson, SensorInfo.class);
+        List<String> sensorList = Arrays.asList(assetInformation.getReadSensorList());
+        //S0001,PORT_MAIN_ENGINE_RPM,D10000,WORD,PME
+        if (sensorList.contains(pmeSensorInfoList.get(0).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(0).getSensorName(), getWord(responseString.substring(0, 4)));
+        //S0002,PORT_MAIN_ENGINE_OIL_PRESSURE,D10002,FLOAT,PME
+        if (sensorList.contains(pmeSensorInfoList.get(1).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(1).getSensorName(), getFloat(responseString.substring(8, 16)));
+        //S0003,PORT_MAIN_ENGINE_TURBO_OIL_PRESSURE,D10004,FLOAT,PME
+        if (sensorList.contains(pmeSensorInfoList.get(2).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(2).getSensorName(), "NO_DATA");
+        //S0004,PORT_MAIN_ENGINE_FUEL_OIL_PRESSURE,D10006,FLOAT,PME
+        if (sensorList.contains(pmeSensorInfoList.get(3).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(3).getSensorName(), getFloat(responseString.substring(24, 32)));
+        //S0005,PORT_MAIN_ENIGNE_PISTON_COOL_PSI,D10008,FLOAT,PME
+        if (sensorList.contains(pmeSensorInfoList.get(4).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(4).getSensorName(), "NO_DATA");
+        //S0006,PORT_MAIN_ENGINE_RIGHT_BANK_WATER_PRESSURE,D10010,FLOAT,PME
+        if (sensorList.contains(pmeSensorInfoList.get(5).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(5).getSensorName(), "NO_DATA");
+        //S0007,PORT_MAIN_ENGINE_LEFT_BANK_WATER_PRESSURE,D10012,FLOAT,PME
+        if (sensorList.contains(pmeSensorInfoList.get(6).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(6).getSensorName(), "NO_DATA");
+        //S0008,PORT_MAIN_ENGINE_OIL_TEMPERATURE,D10014,FLOAT,PME
+        if (sensorList.contains(pmeSensorInfoList.get(7).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(7).getSensorName(), "NO_DATA");
+        //S0009,PORT_MAIN_ENGINE_WATER_TEMPERATURE,D10016,FLOAT,PME
+        if (sensorList.contains(pmeSensorInfoList.get(8).get_id()))
+            sensorValue.put(pmeSensorInfoList.get(8).getSensorName(), getFloat(responseString.substring(64, 72)));
+        database.save(captureInformation);
+    }
+
+    private byte[] buildReadRequest(int dataRegister, int noOfDr) {
 
         List<Byte> list = new ArrayList<Byte>();
 
@@ -102,14 +156,14 @@ public class SocketClient {
         list.add((byte) 'A');
 
         //Data Register Address
-        String addressHexString = Integer.toHexString(10000);
+        String addressHexString = Integer.toHexString(dataRegister);
         char[] addressCharArray = addressHexString.toCharArray();
         for (char c : addressCharArray) {
             list.add((byte) c);
         }
 
         //Data Bytes to Read
-        String dataBytesString = Integer.toHexString(32);
+        String dataBytesString = Integer.toHexString(noOfDr);
         char[] dataBytesArray = dataBytesString.toCharArray();
         for (char c : dataBytesArray) {
             list.add((byte) c);
@@ -139,22 +193,22 @@ public class SocketClient {
         return list;
     }
 
-    private boolean sendRequest(ConnObject connObject, byte[] requestBody) {
+    private boolean sendRequest( byte[] requestBody) {
 
         try {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(connObject.getOutputStream());
             objectOutputStream.write(requestBody);
             objectOutputStream.flush();
-            log.info("Request send to host " +connObject.getIp() );
+            log.debug("Request send to host " + connObject.getIp());
         } catch (IOException e) {
             log.error("Error sending request to host " + connObject.getIp() + " " + e.getMessage());
-            this.writeErrorMsg("Error sending request to host " + connObject.getIp() + " " + e.getMessage(), connObject);
+            this.writeErrorMsg("Error sending request to host " + connObject.getIp() + " " + e.getMessage());
             return false;
         }
         return true;
     }
 
-    private String getResponse(ConnObject connObject) {
+    private String getResponse( ) {
 
         String responseHexString = "";
 
@@ -162,26 +216,26 @@ public class SocketClient {
         InputStream in = connObject.getInputStream();
 
         try {
-            log.info("Waiting for response from host" + connObject.getIp());
+            log.debug("Waiting for response from host" + connObject.getIp());
             TimeUnit.SECONDS.sleep(1);
         } catch (InterruptedException e) {
             log.error("Waiting  interrupted. " + e.getMessage());
-            this.writeErrorMsg("Waiting  interrupted. " + e.getMessage(), connObject);
+            this.writeErrorMsg("Waiting  interrupted. " + e.getMessage());
             return null;
         }
 
         try {
             if (in.available() == 0) {
-                log.info("No Response recieved from host " + connObject.getIp() + ". Process will not attempt to read again automatically");
-                this.writeErrorMsg("No Response recieved from host " + connObject.getIp() + ". Process will not attempt to read again automatically",connObject);
+                log.debug("No Response recieved from host " + connObject.getIp() + ". Process will not attempt to read again automatically");
+                this.writeErrorMsg("No Response recieved from host " + connObject.getIp() + ". Process will not attempt to read again automatically");
                 return null;
             } else {
-                log.info("Response of length " + in.available() + " recieved from host " + connObject.getIp());
+                log.debug("Response of length " + in.available() + " recieved from host " + connObject.getIp());
                 do {
                     responseByteList.add((byte) in.read());
                 } while (in.available() != 0);
 
-              responseByteList.clear();
+                responseByteList.clear();
                 for (Byte aByte : b) {
                     responseByteList.add(aByte);
                 }
@@ -196,29 +250,17 @@ public class SocketClient {
             }
         } catch (IOException e) {
             log.error("Error reading InputStream of host " + connObject.getIp() + e.getMessage());
-            this.writeErrorMsg("Error reading InputStream of host " + connObject.getIp() + e.getMessage(), connObject);
+            this.writeErrorMsg("Error reading InputStream of host " + connObject.getIp() + e.getMessage());
             return null;
         }
         return responseHexString;
     }
 
-    private boolean createCaptureDocument(String responseString, ConnObject connObject, long startTime) {
-
-
-        CaptureInformation captureInformation = new CaptureInformation(new Date(), connObject.getIp(), connObject.isOnline(), connObject.getIp(), connObject.getPort());
-        Sensor sensor = new Sensor();
-
-        sensor.setPortEngineRpm(getWord(responseString.substring(0, 4)));
-        sensor.setPortEngineOilPsr(getFloat(responseString.substring(8, 16)));
-
-        MetaData metaData = new MetaData(responseString, System.currentTimeMillis() - startTime);
-        captureInformation.setSensors(sensor);
-        captureInformation.setMetaData(metaData);
-        ObjectMapper mapper = new ObjectMapper();
-        database.save(captureInformation);
+    private boolean createCaptureDocument() {
+      //  captureInformation = new CaptureInformation(new Date(), assetInformation.getAssetName(), connObject.isOnline(), connObject.getIp(), connObject.getPort());
         return true;
-
     }
+
 
     private float getFloat(String substring) {
         Long i = Long.parseLong(substring, 16);
@@ -226,8 +268,7 @@ public class SocketClient {
 
     }
 
-    private void writeErrorMsg(String errMessage, ConnObject connObject) {
-        CaptureInformation captureInformation = new CaptureInformation(new Date(), connObject.getIp(), connObject.isOnline(), connObject.getIp(), connObject.getPort());
+    private void writeErrorMsg(String errMessage) {
         captureInformation.setErrMsg(errMessage);
         database.save(captureInformation);
     }
@@ -245,10 +286,10 @@ public class SocketClient {
         } catch (IOException e) {
             log.error("Error closing connection. " + e.getMessage());
             log.error("Is Still Connected" + connObject.getRequestSocket().isConnected());
-            this.writeErrorMsg("Error closing connection. " + e.getMessage(), connObject);
+            this.writeErrorMsg("Error closing connection. " + e.getMessage());
 
         } catch (NullPointerException e) {
-            log.info("Connection closed with host " + connObject.getIp());
+            log.debug("Connection closed with host " + connObject.getIp());
         }
 
     }

@@ -23,8 +23,8 @@ public class client {
 
     void run() {
         try {
-            //String hostIp= "localhost";
-            String hostIp = "166.251.157.66";
+            String hostIp= "localhost";
+            //String hostIp = "166.251.157.66";
             //String hostIp = "166.184.21.35";
             //1. creating a socket to connect to the server
             System.out.println("Running");
@@ -46,7 +46,7 @@ public class client {
             sendMessage();
             System.out.println("Sleeping for response from server");
             try {
-                TimeUnit.SECONDS.sleep(10);
+                TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

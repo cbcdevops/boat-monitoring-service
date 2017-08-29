@@ -4,21 +4,123 @@ package com.cb.plcreader.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
 
-public class CaptureInformation {
+public class CaptureInformation implements Serializable{
+    private Sensors[] sensors;
 
+    private String isOnline;
 
-    private String Id;
+    private String assetName;
+
+    private String _rev;
+
+    private CaptureInfo captureInfo;
+
+    private final String docType = "capture_info";
+
+    private String officialNo;
+
+    private String _id;
+
+    private String assetAbbrevation;
+
+    private String errMsg;
+
     @JsonFormat
-            (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+            (shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy hh:mm:ss")
     private Date date;
-    private String assertName;
-    private boolean isOnline;
+
     private String ipAddress;
-    private int port;
+
+    @Override
+    public String toString() {
+        return "CaptureInformation{" +
+                "sensors=" + Arrays.toString(sensors) +
+                ", isOnline='" + isOnline + '\'' +
+                ", assetName='" + assetName + '\'' +
+                ", _rev='" + _rev + '\'' +
+                ", captureInfo=" + captureInfo +
+                ", docType='" + docType + '\'' +
+                ", officialNo='" + officialNo + '\'' +
+                ", _id='" + _id + '\'' +
+                ", assetAbbrevation='" + assetAbbrevation + '\'' +
+                ", errMsg='" + errMsg + '\'' +
+                ", date=" + date +
+                ", ipAddress='" + ipAddress + '\'' +
+                '}';
+    }
+
+    public Sensors[] getSensors() {
+        return sensors;
+    }
+
+    public void setSensors(Sensors[] sensors) {
+        this.sensors = sensors;
+    }
+
+    public String getIsOnline() {
+        return isOnline;
+    }
+
+    public void setIsOnline(String isOnline) {
+        this.isOnline = isOnline;
+    }
+
+    public String getAssetName() {
+        return assetName;
+    }
+
+    public void setAssetName(String assetName) {
+        this.assetName = assetName;
+    }
+
+    public String get_rev() {
+        return _rev;
+    }
+
+    public void set_rev(String _rev) {
+        this._rev = _rev;
+    }
+
+    public CaptureInfo getCaptureInfo() {
+        return captureInfo;
+    }
+
+    public void setCaptureInfo(CaptureInfo captureInfo) {
+        this.captureInfo = captureInfo;
+    }
+
+    public String getDocType() {
+        return docType;
+    }
+
+    public String getOfficialNo() {
+        return officialNo;
+    }
+
+    public void setOfficialNo(String officialNo) {
+        this.officialNo = officialNo;
+    }
+
+    public String get_id() {
+        return _id;
+    }
+
+    public void set_id(String _id) {
+        this._id = _id;
+    }
+
+    public String getAssetAbbrevation() {
+        return assetAbbrevation;
+    }
+
+    public void setAssetAbbrevation(String assetAbbrevation) {
+        this.assetAbbrevation = assetAbbrevation;
+    }
 
     public String getErrMsg() {
         return errMsg;
@@ -26,36 +128,6 @@ public class CaptureInformation {
 
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;
-    }
-
-    private Sensor sensor;
-    private MetaData metaData;
-    private String errMsg;
-
-    public CaptureInformation(Date date, String assertName, boolean isOnline, String ipAddress, int port) {
-        this.date = date;
-        this.assertName = assertName;
-        this.isOnline = isOnline;
-        this.ipAddress = ipAddress;
-        this.port = port;
-    }
-
-    public CaptureInformation() {
-    }
-
-    @Override
-    public String toString() {
-        return "CaptureInformation{" +
-                "Id='" + Id + '\'' +
-                ", date=" + date +
-                ", assertName='" + assertName + '\'' +
-                ", isOnline=" + isOnline +
-                ", ipAddress='" + ipAddress + '\'' +
-                ", port=" + port +
-                ", sensor=" + sensor +
-                ", metaData=" + metaData +
-                ", errMsg='" + errMsg + '\'' +
-                '}';
     }
 
     public Date getDate() {
@@ -66,22 +138,6 @@ public class CaptureInformation {
         this.date = date;
     }
 
-    public String getAssertName() {
-        return assertName;
-    }
-
-    public void setAssertName(String assertName) {
-        this.assertName = assertName;
-    }
-
-    public boolean isOnline() {
-        return isOnline;
-    }
-
-    public void setOnline(boolean online) {
-        isOnline = online;
-    }
-
     public String getIpAddress() {
         return ipAddress;
     }
@@ -90,39 +146,5 @@ public class CaptureInformation {
         this.ipAddress = ipAddress;
     }
 
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public Sensor getSensors() {
-        return sensor;
-    }
-
-    public void setSensors(Sensor sensor) {
-        this.sensor = sensor;
-    }
-
-    public MetaData getMetaData() {
-        return metaData;
-    }
-
-    public void setMetaData(MetaData metaData) {
-        this.metaData = metaData;
-    }
-
-    public CaptureInformation(Date date, String assertName, boolean isOnline, String ipAddress, int port, List<Sensor> sensors, MetaData metaData) {
-        this.date = date;
-        this.assertName = assertName;
-        this.isOnline = isOnline;
-        this.ipAddress = ipAddress;
-        this.port = port;
-        this.sensor = sensor;
-        this.metaData = metaData;
-
-    }
 }
 
