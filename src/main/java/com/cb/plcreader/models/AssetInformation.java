@@ -15,7 +15,7 @@ public class AssetInformation implements Serializable {
     private String hostAddress1;
     private String hostAddress2;
     private int port;
-    private String cronScheduleString;
+    private String runFreqInSec;
     private String[] readSensorList;
     private final String docType = "asset_info";
 
@@ -28,7 +28,7 @@ public class AssetInformation implements Serializable {
                 ", hostAddress1='" + hostAddress1 + '\'' +
                 ", hostAddress2='" + hostAddress2 + '\'' +
                 ", port=" + port +
-                ", cronScheduleString='" + cronScheduleString + '\'' +
+                ", runFreqInSec='" + runFreqInSec + '\'' +
                 ", readSensorList=" + Arrays.toString(readSensorList) +
                 ", docType='" + docType + '\'' +
                 '}';
@@ -82,12 +82,12 @@ public class AssetInformation implements Serializable {
         this.port = port;
     }
 
-    public String getCronScheduleString() {
-        return cronScheduleString;
+    public String getRunFreqInSec() {
+        return runFreqInSec;
     }
 
-    public void setCronScheduleString(String cronScheduleString) {
-        this.cronScheduleString = cronScheduleString;
+    public void setRunFreqInSec(String runFreqInSec) {
+        this.runFreqInSec = runFreqInSec;
     }
 
     public String[] getReadSensorList() {
@@ -98,7 +98,7 @@ public class AssetInformation implements Serializable {
         this.readSensorList = readSensorList;
     }
 
-    public AssetInformation(String assetName, String _id, String assetAbbreviation, String hostAddress1, String hostAddress2, int port, String cronScheduleString, String[] readSensorList) {
+    public AssetInformation(String assetName, String _id, String assetAbbreviation, String hostAddress1, String hostAddress2, int port, String runFreqInSec, String[] readSensorList) {
 
         this.assetName = assetName;
         this._id = _id;
@@ -106,7 +106,7 @@ public class AssetInformation implements Serializable {
         this.hostAddress1 = hostAddress1;
         this.hostAddress2 = hostAddress2;
         this.port = port;
-        this.cronScheduleString = cronScheduleString;
+        this.runFreqInSec = runFreqInSec;
         this.readSensorList = readSensorList;
     }
 

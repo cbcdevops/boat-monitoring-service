@@ -9,6 +9,7 @@ public class SensorInfo implements Serializable {
     private String sensorGroup;
     private String dataRegister;
     private String dataType;
+    private char  dataRegisterType;
     private final String docType = "sensor_info";
 
     @Override
@@ -55,6 +56,14 @@ public class SensorInfo implements Serializable {
         this.dataType = dataType;
     }
 
+    public char getDataRegisterType() {
+        return dataRegisterType;
+    }
+
+    public void setDataRegisterType(char dataRegisterType) {
+        this.dataRegisterType = dataRegisterType;
+    }
+
     public String getSensorGroup() {
         return sensorGroup;
     }
@@ -67,11 +76,12 @@ public class SensorInfo implements Serializable {
 
     }
 
-    public SensorInfo(String _id, String sensorName, String sensorGroup, String dataRegister, String dataType) {
+    public SensorInfo(String _id, String sensorName, String sensorGroup, String dataRegister, String dataType, char dataRegisterType) {
         this._id = _id;
         this.sensorName = sensorName;
         this.sensorGroup = sensorGroup;
         this.dataRegister = dataRegister;
         this.dataType = dataType;
+        this.dataRegisterType = dataRegisterType;
     }
 }

@@ -2,29 +2,32 @@ package com.cb.plcreader.models;
 
 import java.io.Serializable;
 
-public class Values implements Serializable
-{
+public class Values implements Serializable {
+
     private String value;
 
     private String sensorName;
 
-    public String getValue ()
-    {
+
+
+    public Values(String sensorName , String value) {
+        this.value = value;
+        this.sensorName = sensorName;
+    }
+
+    public String getValue() {
         return value;
     }
 
-    public void setValue (String value)
-    {
+    public void setValue(String value) {
         this.value = value;
     }
 
-    public String getSensorName ()
-    {
+    public String getSensorName() {
         return sensorName;
     }
 
-    public void setSensorName (String sensorName)
-    {
+    public void setSensorName(String sensorName) {
         this.sensorName = sensorName;
     }
 

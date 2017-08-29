@@ -5,12 +5,14 @@ package com.cb.plcreader.models;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
 
 public class CaptureInformation implements Serializable{
-    private Sensors[] sensors;
+
+    private ArrayList<Sensors> sensors;
 
     private String isOnline;
 
@@ -39,7 +41,7 @@ public class CaptureInformation implements Serializable{
     @Override
     public String toString() {
         return "CaptureInformation{" +
-                "sensors=" + Arrays.toString(sensors) +
+                "sensors=" + Arrays.toString(new ArrayList[]{sensors}) +
                 ", isOnline='" + isOnline + '\'' +
                 ", assetName='" + assetName + '\'' +
                 ", _rev='" + _rev + '\'' +
@@ -54,11 +56,19 @@ public class CaptureInformation implements Serializable{
                 '}';
     }
 
-    public Sensors[] getSensors() {
+    public CaptureInformation( String assetName, String officialNo, String assetAbbrevation, Date date, String ipAddress) {
+        this.assetName = assetName;
+        this.officialNo = officialNo;
+        this.assetAbbrevation = assetAbbrevation;
+        this.date = date;
+        this.ipAddress = ipAddress;
+    }
+
+    public ArrayList<Sensors> getSensors() {
         return sensors;
     }
 
-    public void setSensors(Sensors[] sensors) {
+    public void setSensors(ArrayList<Sensors> sensors) {
         this.sensors = sensors;
     }
 
@@ -110,9 +120,6 @@ public class CaptureInformation implements Serializable{
         return _id;
     }
 
-    public void set_id(String _id) {
-        this._id = _id;
-    }
 
     public String getAssetAbbrevation() {
         return assetAbbrevation;
