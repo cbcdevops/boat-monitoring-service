@@ -32,7 +32,6 @@ public class ReadController {
 
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-
     @GetMapping
     @RequestMapping("/read")
     public List<AssetInformation> readValue() {
@@ -60,5 +59,4 @@ public class ReadController {
         }
         return String.format("Total time to query " + assetDocs.size() + " assets is " + (System.currentTimeMillis() - startTime) + "ms");
     }
-
 }

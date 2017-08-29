@@ -22,6 +22,7 @@ public class server {
             providerSocket = new ServerSocket(2101, 10);
             //2. Wait for connection
             System.out.println("Waiting for connection");
+            System.out.println();
             connection = providerSocket.accept();
             System.out.println("Connection received from " + connection.getInetAddress().getHostName());
             //3. get Input and Output streams

@@ -5,7 +5,6 @@ import com.cloudant.client.api.Database;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -45,15 +44,16 @@ public class SocketClient {
     public void readAssetRegisters(AssetInformation assetDoc) {
 
         assetInformation = assetDoc;
-        if (this.createConnection()) {
+        if (this.openSocketConnection()) {
             startTime = System.currentTimeMillis();
             this.createCaptureDocument();
             sensors.clear();
             values.clear();
             this.populateSenorGroup("PORT_MAIN_ENGINE");
+            this.closeSocketConection();
             captureInformation.setSensors(sensors);
             this.database.save(captureInformation);
-            this.closeConnection();
+
         }
     }
 
@@ -61,7 +61,7 @@ public class SocketClient {
      * @return result of the socket connection creation
      * @description Create the connection with the given asset
      */
-    private boolean createConnection() {
+    private boolean openSocketConnection() {
 
         try {
             connObject.setIp(assetInformation.getHostAddress1());
@@ -116,7 +116,7 @@ public class SocketClient {
 
         //Read the response from the server
         return this.readResponse();
-        //this.closeConnection(connObject);
+        //this.closeSocketConection(connObject);
 
     }
 
@@ -357,7 +357,7 @@ public class SocketClient {
     /**
      * @description Close the connection with the asset
      */
-    private void closeConnection() {
+    private void closeSocketConection() {
 
         try {
             connObject.getInputStream().close();

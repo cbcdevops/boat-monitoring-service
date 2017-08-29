@@ -47,6 +47,13 @@ public class DataBaseInit {
 
     }
 
+    /**
+     * @description to insert the sesnr information into the database.
+     * any udpate to sensor information programaticaly requires a new build and deploy.
+     * @throws IOException
+     */
+
+    //Todo Mechanism to refresh the sensor information
     private void initSensorInfoCollection() throws IOException {
         String selectorJson = "{\"selector\":{\"docType\":{\"$eq\":\"sensor_info\"}},\"fields\":[\"_id\",\"_rev\"],\"sort\":[{\"docType\":\"asc\"}]}";
 
@@ -95,9 +102,5 @@ public class DataBaseInit {
 
         database.createIndex("findbyDocType", "findbyDocType", "json", new IndexField[]{new IndexField("docType", IndexField.SortOrder.asc)});
 
-        //Universal Index using
-        //database.createIndex("{\"index\":{\"fields\":[\"docType\"]},\"type\":\"text\"}");
-
-        //database.createIndex("findbySensorGroup-index", "findbySensorGroup-index", "json", new IndexField[]{new IndexField("docType", IndexField.SortOrder.asc),new IndexField("sensorGroup", IndexField.SortOrder.asc)});
     }
 }
