@@ -50,7 +50,7 @@ public class SocketClient {
             sensors.clear();
             values.clear();
             this.populateSenorGroup("PORT_MAIN_ENGINE");
-            this.closeSocketConection();
+            this.closeSocketConnection();
             captureInformation.setSensors(sensors);
             this.database.save(captureInformation);
 
@@ -76,6 +76,7 @@ public class SocketClient {
                 this.createSocket();
                 return true;
             } catch (IOException e1) {
+                this.createCaptureDocument();
                 log.error("Error opening connection with the asset using secondary IP. " + connObject.getIp() + " "+ e.getMessage());
                 this.writeErrorMsg("No Connectivity with Asset " + assetInformation.getAssetName() + ".");
                 return false;
@@ -357,7 +358,7 @@ public class SocketClient {
     /**
      * @description Close the connection with the asset
      */
-    private void closeSocketConection() {
+    private void closeSocketConnection() {
 
         try {
             connObject.getInputStream().close();
