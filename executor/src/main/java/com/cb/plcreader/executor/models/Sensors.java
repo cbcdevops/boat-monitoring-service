@@ -7,6 +7,7 @@ public class Sensors implements Serializable {
     private String sensorGroup;
     private String sensorName;
     private float value;
+    private String uom;
 
     public Sensors() {
     }
@@ -14,26 +15,11 @@ public class Sensors implements Serializable {
     @Override
     public String toString() {
         return "Sensors{" +
-                "value='" + value + '\'' +
+                "sensorGroup='" + sensorGroup + '\'' +
                 ", sensorName='" + sensorName + '\'' +
-                ", sensorGroup='" + sensorGroup + '\'' +
+                ", value=" + value +
+                ", uom='" + uom + '\'' +
                 '}';
-    }
-
-    public float getValue() {
-        return value;
-    }
-
-    public void setValue(float value) {
-        this.value = value;
-    }
-
-    public String getSensorName() {
-        return sensorName;
-    }
-
-    public void setSensorName(String sensorName) {
-        this.sensorName = sensorName;
     }
 
     public String getSensorGroup() {
@@ -44,9 +30,35 @@ public class Sensors implements Serializable {
         this.sensorGroup = sensorGroup;
     }
 
-    public Sensors(String sensorName, float value, String sensorGroup) {
-        this.value = value;
+    public String getSensorName() {
+        return sensorName;
+    }
+
+    public void setSensorName(String sensorName) {
         this.sensorName = sensorName;
+    }
+
+    public float getValue() {
+        return value;
+    }
+
+    public void setValue(float value) {
+        this.value = value;
+    }
+
+    public String getUom() {
+        return uom;
+    }
+
+    public void setUom(String uom) {
+        this.uom = uom;
+    }
+
+    public Sensors(String sensorGroup,  float value, String sensorName, String uom) {
+
         this.sensorGroup = sensorGroup;
+        this.sensorName = sensorName;
+        this.value = value;
+        this.uom = uom;
     }
 }

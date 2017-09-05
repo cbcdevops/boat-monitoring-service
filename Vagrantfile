@@ -19,6 +19,7 @@ Vagrant.configure("2") do |config|
 			echo '************************************************************'
 			sudo yum install -y git
 			sudo yum install -y maven
+			sudo yum install net-tools
 			if yum list installed docker
 			then
 				echo '************************************************************'

@@ -52,14 +52,17 @@ public class DataBaseInit {
      * any udpate to sensor information programaticaly requires a new build and deploy.
      */
     private void initSensorInfoCollection() throws IOException {
-
         String selectorJson = "{\"selector\":{\"docType\":{\"$eq\":\"sensor_info\"}},\"fields\":[\"_id\",\"_rev\"],\"sort\":[{\"docType\":\"asc\"}]}";
         List<Object> response = database.findByIndex(selectorJson, Object.class);
-        if (response.size() > 0) {
-            response.forEach(sensorInfo -> {
-                database.remove(sensorInfo);
-            });
-        }
+
+        do {
+            if (response.size() > 0) {
+                response.forEach(sensorInfo -> {
+                    database.remove(sensorInfo);
+                });
+            }
+            response = database.findByIndex(selectorJson, Object.class);
+        } while (response.size() > 0);
 
         CsvMapper mapper = new CsvMapper();
         CsvSchema sensorSchema = mapper.schemaWithHeader();
@@ -72,7 +75,7 @@ public class DataBaseInit {
             database.save(it.next());
             sum++;
         }
-        log.info("Sensors Info update: " + sum + " inserts" );
+        log.info("Sensors Info update: " + sum + " inserts");
 
 
     }
@@ -82,13 +85,19 @@ public class DataBaseInit {
      * @Description Refresh the asset information in the database.
      */
     private void initAssetInfoCollection() throws IOException {
+
         String selectorJson = "{\"selector\":{\"docType\":{\"$eq\":\"asset_info\"}},\"fields\":[\"_id\",\"_rev\"],\"sort\":[{\"docType\":\"asc\"}]}";
         List<Object> response = database.findByIndex(selectorJson, Object.class);
-        if (response.size() > 0) {
-            response.forEach(assetInfo -> {
-                database.remove(assetInfo);
-            });
-        }
+
+        do {
+            if (response.size() > 0) {
+                response.forEach(assetInfo -> {
+                    database.remove(assetInfo);
+                });
+            }
+            response = database.findByIndex(selectorJson, Object.class);
+        } while (response.size() > 0);
+
         CsvMapper mapper = new CsvMapper();
         mapper.enable(CsvParser.Feature.IGNORE_TRAILING_UNMAPPABLE);
         CsvSchema sensorSchema = mapper.schemaWithHeader();
@@ -101,7 +110,7 @@ public class DataBaseInit {
             database.save(it.next());
             sum++;
         }
-        log.info("Asset Info update: " + sum + " inserts" );
+        log.info("Asset Info update: " + sum + " inserts");
     }
 
     /**

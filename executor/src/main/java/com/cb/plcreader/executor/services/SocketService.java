@@ -139,7 +139,7 @@ public class SocketService extends Thread {
         //responseString = responseString + readSensor(10200, 64);
 
         if (responseString == null) {
-            return true;
+            return false;
         }
 
         Map sensorValue = new HashMap();
@@ -154,20 +154,20 @@ public class SocketService extends Thread {
             switch (sensorInfo.getDataType()) {
                 case "FLOAT":
                     //Todo get the offsets from the sensor object
-                    sensors.add(new Sensors(sensorInfo.getSensorName(), getFloat(responseString.substring(startIndex, startIndex + FLOAT_HEX_LENGTH)), sensorInfo.getSensorGroup()));
+                    sensors.add(new Sensors(sensorInfo.getSensorName(), getFloat(responseString.substring(startIndex, startIndex + FLOAT_HEX_LENGTH)), sensorInfo.getSensorGroup(),sensorInfo.getUom()));
                     break;
 
                 case "WORD":
-                    sensors.add(new Sensors(sensorInfo.getSensorName(), getWord(responseString.substring(startIndex, startIndex + WORD_HEX_LENGTH)), sensorInfo.getSensorGroup()));
+                    sensors.add(new Sensors(sensorInfo.getSensorName(), getWord(responseString.substring(startIndex, startIndex + WORD_HEX_LENGTH)), sensorInfo.getSensorGroup(),sensorInfo.getUom()));
                     break;
 
                 case "INTEGER":
-                    sensors.add(new Sensors(sensorInfo.getSensorName(), getWord(responseString.substring(startIndex, startIndex + INTEGER_HEX_LENGTH)), sensorInfo.getSensorGroup()));
+                    sensors.add(new Sensors(sensorInfo.getSensorName(), getWord(responseString.substring(startIndex, startIndex + INTEGER_HEX_LENGTH)), sensorInfo.getSensorGroup(),sensorInfo.getUom()));
                     break;
             }
 
         }
-        return false;
+        return true;
     }
 
     /**
